@@ -6,7 +6,7 @@ def create_pi_image(circle_radius_mm, pi_text_size_mm, number_pi_size_mm, pi_dig
     mm_to_pixels = dpi / 25.4
     txt_pt_size = 0.3528
     circle_radius = int(circle_radius_mm * mm_to_pixels)
-    pi_text_size = int((pi_text_size_mm / txt_pt_size) * mm_to_pixels)
+    pi_text_size = int((pi_text_size_mm / txt_pt_size) * (mm_to_pixels / 0.6))
     number_pi_size = int((number_pi_size_mm / txt_pt_size) * mm_to_pixels)
 
     # Load the digits of π from the file
@@ -22,7 +22,9 @@ def create_pi_image(circle_radius_mm, pi_text_size_mm, number_pi_size_mm, pi_dig
         raise ValueError("Invalid choice for background color. Choose 1 for white or 2 for transparent.")
 
     # Create a blank image with the specified background color
-    img_size = (circle_radius * 2, circle_radius * 2)
+    # Add border: increase size by 10% on each side
+    border_size = int(0.1 * circle_radius)
+    img_size = (circle_radius * 2 + 2 * border_size, circle_radius * 2 + 2 * border_size)
     image = Image.new('RGBA', img_size, background_color)
     draw = ImageDraw.Draw(image)
 
@@ -43,7 +45,8 @@ def create_pi_image(circle_radius_mm, pi_text_size_mm, number_pi_size_mm, pi_dig
     # Create a mask to define the circle and the area to exclude for the letter π
     mask = Image.new('L', img_size, 0)
     mask_draw = ImageDraw.Draw(mask)
-    mask_draw.ellipse((0, 0, img_size[0], img_size[1]), fill=255)  # Draw the circle
+    # Adjust the ellipse to fit inside the new border
+    mask_draw.ellipse((border_size, border_size, img_size[0] - border_size, img_size[1] - border_size), fill=255)  # Draw the circle
     mask_draw.text(text_position, pi_text, fill=0, font=font_pi, anchor="mm")  # Mask out the area for the letter π
 
     # Draw the digits of π around the masked area
